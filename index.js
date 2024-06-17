@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
@@ -29,19 +30,31 @@ async function run() {
     const serviceCollection = client.db('CarFix').collection('services');     // database, collection.    
     const bookingCollection = client.db('CarFix').collection('booking');      // database, collection. 
 
+    // JWT
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      // console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '1h'
+      });
+      console.log("token: ", {token});
+      res.send({token});
+    })
+
+
     // services. 
-    app.get('/services', async(req, res) => {
-        const cursor = serviceCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
+    app.get('/services', async (req, res) => {
+      const cursor = serviceCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
     })
 
     app.get('/services/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
 
       const options = {
-        projection: {title: 1, price: 1, service_id: 1, img: 1 },   // taking some data form mongodb. 
+        projection: { title: 1, price: 1, service_id: 1, img: 1 },   // taking some data form mongodb. 
       };
 
       const result = await serviceCollection.findOne(query, options);
@@ -49,31 +62,31 @@ async function run() {
     })
 
     // bookings.
-    app.get('/bookings', async(req, res) => {
+    app.get('/bookings', async (req, res) => {
       // console.log("query email: ", req.query.email);
       let query = {};
-      if (req.query?.email){
-        query = {email: req.query.email};
+      if (req.query?.email) {
+        query = { email: req.query.email };
       }
       const result = await bookingCollection.find().toArray();
       res.send(result);
     })
-    
+
     // insert data. 
     app.post('/bookings', async (req, res) => {
       const booking = req.body;
-      console.log(booking);
+      // console.log(booking);
       const result = await bookingCollection.insertOne(booking);
       res.send(result);
     });
 
     // update data. 
-    app.patch('/bookings/:id', async(req, res) =>{
+    app.patch('/bookings/:id', async (req, res) => {
       const id = req.params.id;       // Extracting ID
-      const filter = { _id: new ObjectId(id)};     // creates a filter to find the booking by unique ID
-      
+      const filter = { _id: new ObjectId(id) };     // creates a filter to find the booking by unique ID
+
       const updateBooking = req.body;    // gets the new status data from the request body. 
-      console.log(updateBooking);
+      // console.log(updateBooking);
       const updateDoc = {
         $set: {
           status: updateBooking.status
@@ -105,11 +118,11 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('server is running');
+  res.send('server is running');
 })
 
 app.listen(port, () => {
-    console.log(`car fix server is running on port ${port}`);
+  console.log(`car fix server is running on port ${port}`);
 })
 
 

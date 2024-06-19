@@ -25,15 +25,16 @@ const client = new MongoClient(uri, {
 // verify JWT. 
 const verifyJWT = (req, res, next) => {
   console.log('hitting verify JWT.');
-  console.log(req.headers.authorization);
+  console.log("verifyJWt header authorization: ", req.headers.authorization);
+  
   const authorization = req.headers.authorization;
   if (!authorization){
-    return res.status(401).send({error: true, message: 'unauthorized access'})
+    return res.status(401).send({error: true, message: 'unauthorized access'});
   }
   const token = authorization.split(' ')[1];      // second index is the token. 
 
   console.log('token inside verify JWT.', token);
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,  (error, decoded) => {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
     if (error){
       return res.status(403).send({error: true, message: 'unauthorized access'});
     }
@@ -55,11 +56,12 @@ async function run() {
     // JWT
     app.post('/jwt', (req, res) => {
       const user = req.body;
-      // console.log(user);
+      console.log(user);
+
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '1h'
       });
-      // console.log("token: ", {token});
+      console.log("token: ", {token});
       res.send({token});
     })
 
@@ -83,21 +85,21 @@ async function run() {
       res.send(result);
     })
 
-    // bookings.
+    // bookings routes.
     app.get('/bookings', verifyJWT, async (req, res) => {
       const decoded = req.decoded;
       console.log("Come back after verify...", decoded); 
-      // console.log("query email: ", req.headers.authorization);
+      console.log("query email: ", req.headers.authorization);
 
       if (decoded.email !== req.query.email){
-        return res.status(403).send({error: 1, message: 'forbidden access'});
+        return res.status(401).send({error: 1, message: 'forbidden access'});
       }
       let query = {};
 
       if (req.query?.email) {
         query = { email: req.query.email };
       }
-      const result = await bookingCollection.find().toArray();
+      const result = await bookingCollection.find(query).toArray();
       res.send(result);
     })
 

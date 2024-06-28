@@ -36,7 +36,7 @@ const verifyJWT = (req, res, next) => {
   console.log('token inside verify JWT.', token);
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
     if (error){
-      return res.status(403).send({error: true, message: 'unauthorized access'});
+      return res.status(401).send({error: true, message: 'unauthorized access'});
     }
     req.decoded = decoded;
     next();
@@ -92,7 +92,7 @@ async function run() {
       console.log("query email: ", req.headers.authorization);
 
       if (decoded.email !== req.query.email){
-        return res.status(401).send({error: 1, message: 'forbidden access'});
+        return res.status(403).send({error: 1, message: 'forbidden access'});
       }
       let query = {};
 

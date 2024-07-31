@@ -68,8 +68,7 @@ async function run() {
 
     // services. 
     app.get('/services', async (req, res) => {
-      const cursor = serviceCollection.find();
-      const result = await cursor.toArray();
+      const result = await serviceCollection.find().toArray();
       res.send(result);
     })
 
